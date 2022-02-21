@@ -4,7 +4,8 @@ The repository contains the code of a Flutter app documented in the linked blog 
 
 ## Related Blog posts
 
-[Writing a Flutter app from scratch - part 1 - features, app design, app skeleton](https://xeladu.medium.com)
+[Part 2 - define models and set up database](https://xeladu.medium.com)
+[Part 1 - features, app design, app skeleton](https://xeladu.medium.com)
 
 ## Support
 
