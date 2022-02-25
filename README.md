@@ -1,6 +1,6 @@
 # Content
 
-The repository contains the code of a Flutter app documented in the linked blog posts. For detailled information see the specific posts.
+The repository contains the code of a Flutter app documented in the linked blog posts. For detailled information see the specific posts. There is a tag associated with each post with the matching code base.
 
 ## Related Blog posts
 
