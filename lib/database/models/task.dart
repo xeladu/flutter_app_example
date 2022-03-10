@@ -21,6 +21,15 @@ class Task extends Equatable {
   final TaskReminderConfiguration configuration;
   final List<TaskReminder> reminders;
 
+  Task.empty()
+      : this(
+            id: "",
+            title: "",
+            description: "",
+            created: DateTime.now(),
+            configuration: const TaskReminderConfiguration.empty(),
+            reminders: <TaskReminder>[]);
+
   factory Task.fromJson(Map<String, dynamic> json) => Task(
         id: json.containsKey("id") ? json["id"] : "",
         title: json.containsKey("title") ? json["title"] : "",

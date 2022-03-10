@@ -15,6 +15,11 @@ class DatabaseService {
     return res;
   }
 
+  Future<Task> getTaskById(String id) async {
+    return (await getAllTasks())
+        .firstWhere((element) => element.id == id, orElse: () => Task.empty());
+  }
+
   Future addTask(Task task) async {
     var box = await Hive.openBox(boxId);
     await box.put(task.id, jsonEncode(task.toJson()));
@@ -25,5 +30,10 @@ class DatabaseService {
     var box = await Hive.openBox(boxId);
     await box.delete(task.id);
     await box.close();
+  }
+
+  Future replaceTask(Task oldTask, Task newTask) async {
+    await removeTask(oldTask);
+    await addTask(newTask);
   }
 }

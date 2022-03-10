@@ -1,92 +1,66 @@
-import 'package:app_example/database/database_service.dart';
 import 'package:app_example/database/models/task.dart';
-import 'package:app_example/database/models/task_reminder.dart';
-import 'package:app_example/database/models/task_reminder_configuration.dart';
-import 'package:app_example/navigation/route_generator.dart';
+import 'package:app_example/providers/task_list_provider.dart';
+import 'package:app_example/views/home_view/home_view_model.dart';
+import 'package:app_example/wigets/loading_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeView extends StatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+class HomeView extends ConsumerWidget {
+  final HomeViewModel viewModel;
 
-  @override
-  State<StatefulWidget> createState() => _State();
-}
-
-class _State extends State<HomeView> {
-  final DatabaseService _dbService = DatabaseService();
-  List<Task> _taskList = <Task>[];
+  const HomeView(this.viewModel, {Key? key}) : super(key: key);
 
   @override
-  void initState() {
-    super.initState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final provider = ref.watch(taskListProvider);
 
-    _dbService.getAllTasks().then((value) {
-      setState(() {
-        _taskList = value;
-      });
-    });
+    return provider.when(
+        loading: _buildLoadingContent,
+        error: _buildErrorContent,
+        data: (data) => _buildDataContent(data, ref));
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildLoadingContent() {
     return Scaffold(
-        appBar: AppBar(title: const Text("Home View")),
-        body: Center(
-            child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.5,
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            ElevatedButton(
-                onPressed: () async => await Navigator.pushNamed(
-                    context, RouteGenerator.routeTask),
-                child: const Text("Go to Task View")),
-            Container(height: 10),
-            ElevatedButton(
-                onPressed: () async => await Navigator.pushNamed(
-                    context, RouteGenerator.routeTaskEdit),
-                child: const Text("Go to Task Edit View")),
-            Container(height: 10),
-            ElevatedButton(
-                onPressed: () async => await Navigator.pushNamed(
-                    context, RouteGenerator.routeError),
-                child: const Text("Go to Error View")),
-            Container(height: 30),
-            ElevatedButton(
-                onPressed: () async => await addRandomTask(),
-                child: const Text("Add random task")),
-            Container(height: 10),
-            ElevatedButton(
-                onPressed: () async => await deleteLatestTask(),
-                child: const Text("Remove latest task")),
-            Container(height: 30),
-            Text("There are ${_taskList.length} tasks in the database")
-          ]),
-        )));
+        appBar: AppBar(title: const Text("HomeView")),
+        body: const LoadingWidget());
   }
 
-  Future addRandomTask() async {
-    await _dbService.addTask(Task(
-        id: UniqueKey().toString(),
-        title: "test",
-        description: "description",
-        created: DateTime.now(),
-        configuration: const TaskReminderConfiguration.empty(),
-        reminders: const <TaskReminder>[]));
-
-    var res = await _dbService.getAllTasks();
-
-    setState(() {
-      _taskList = res;
-    });
+  Widget _buildErrorContent(Object? o, StackTrace? st) {
+    return Scaffold(
+        appBar: AppBar(title: const Text("HomeView")),
+        body: ErrorWidget(o.toString()));
   }
 
-  Future deleteLatestTask() async {
-    if (_taskList.isEmpty) return;
+  Widget _buildDataContent(List<Task> data, WidgetRef ref) {
+    return Scaffold(
+        appBar: AppBar(title: const Text("HomeView")),
+        floatingActionButton: FloatingActionButton(
+            heroTag: null,
+            onPressed: () async {
+              await viewModel.addNewTask();
+              ref.refresh(taskListProvider);
+            },
+            child: const Icon(Icons.add)),
+        body: data.isEmpty
+            ? const Center(child: Text("No data found!"))
+            : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  final item = data[index];
 
-    await _dbService.removeTask(_taskList.last);
-    var res = await _dbService.getAllTasks();
-
-    setState(() {
-      _taskList = res;
-    });
+                  return Card(
+                      child: ListTile(
+                    onTap: () async {
+                      await viewModel.goToTaskView(item);
+                      ref.refresh(taskListProvider);
+                    },
+                    title: Text(item.title),
+                    subtitle: Text(item.description),
+                    isThreeLine: true,
+                    leading: const Icon(Icons.notifications),
+                  ));
+                }));
   }
 }
