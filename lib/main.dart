@@ -1,6 +1,7 @@
 import 'package:app_example/dependency_setup.dart';
 import 'package:app_example/navigation/navigation_service.dart';
 import 'package:app_example/navigation/route_generator.dart';
+import 'package:app_example/notification/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ Future<void> main() async {
 
   await DependencySetup.registerDependencies();
   await Hive.initFlutter();
+  await Get.find<NotificationService>().init();
   runApp(const ProviderScope(child: MyApp()));
 }
 

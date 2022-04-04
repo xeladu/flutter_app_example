@@ -3,15 +3,16 @@ import 'package:app_example/database/models/skip_configuration.dart';
 import 'package:app_example/database/models/task.dart';
 import 'package:app_example/database/models/task_reminder.dart';
 import 'package:app_example/database/models/task_reminder_configuration.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:app_example/notification/reminder_service.dart';
 import 'package:get/get.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class TaskEditViewModel {
   final Task? task;
+  late int id;
   late String title;
   late String description;
-  late DateTime? firstReminder;
-  late Duration? reminderInterval;
+  late tz.TZDateTime firstExecution;
   late bool skipMondays;
   late bool skipTuesdays;
   late bool skipWednesdays;
@@ -21,11 +22,12 @@ class TaskEditViewModel {
   late bool skipSundays;
   late bool enabled;
 
-  TaskEditViewModel(this.task) {
+  TaskEditViewModel(this.task, {int? newId}) {
+    id = newId ?? task?.id as int;
     title = task?.title ?? "";
     description = task?.description ?? "";
-    firstReminder = task?.configuration.initialDate;
-    reminderInterval = task?.configuration.recurringInterval;
+    firstExecution = task?.configuration.initialDate ??
+        tz.TZDateTime.now(tz.local).add(const Duration(minutes: 2));
     skipMondays = task?.configuration.skipOn.monday ?? false;
     skipTuesdays = task?.configuration.skipOn.tuesday ?? false;
     skipWednesdays = task?.configuration.skipOn.wednesday ?? false;
@@ -38,14 +40,14 @@ class TaskEditViewModel {
 
   Future save() async {
     var newTask = Task(
-        id: task?.id ?? UniqueKey().toString(),
+        id: id,
         title: title,
         description: description,
-        created: task?.created ?? DateTime.now(),
+        created: task?.created ?? tz.TZDateTime.now(tz.local),
         configuration: TaskReminderConfiguration(
             enabled: enabled,
-            initialDate: firstReminder,
-            recurringInterval: reminderInterval,
+            initialDate: firstExecution,
+            recurringInterval: const Duration(days: 1),
             skipOn: SkipConfiguration(
                 monday: skipMondays,
                 tuesday: skipTuesdays,
@@ -55,6 +57,8 @@ class TaskEditViewModel {
                 saturday: skipSaturdays,
                 sunday: skipSundays)),
         reminders: task?.reminders ?? <TaskReminder>[]);
+
+    Get.find<ReminderService>().fillReminders(newTask);
 
     var dbService = Get.find<DatabaseService>();
 

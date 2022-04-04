@@ -40,6 +40,9 @@ dependencies:
   flutter_riverpod: ^1.0.3
   get: ^4.6.1
   intl: ^0.17.0
+  flutter_local_notifications: ^9.4.0
+  timezone: ^0.8.0
+  flutter_native_timezone: ^2.0.0
 
 dev_dependencies:
   flutter_test:

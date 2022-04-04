@@ -1,9 +1,8 @@
 import 'package:app_example/database/models/task.dart';
 import 'package:app_example/database/models/task_reminder.dart';
 import 'package:app_example/providers/single_task_provider.dart';
-import 'package:app_example/providers/task_list_provider.dart';
 import 'package:app_example/views/task_view/task_view_model.dart';
-import 'package:app_example/wigets/loading_widget.dart';
+import 'package:app_example/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -14,16 +13,24 @@ class TaskView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final task = ref.watch(singleTaskProvider(viewModel.taskId));
+    final provider = ref.watch(singleTaskProvider(viewModel.taskId));
 
-    return task.when(
+    return provider.when(
         data: (data) => _buildTaskDetails(data, ref),
-        error: (Object o, StackTrace? st) => Scaffold(
-            appBar: AppBar(title: const Text("Task View")),
-            body: ErrorWidget(o.toString())),
-        loading: () => Scaffold(
-            appBar: AppBar(title: const Text("Task View")),
-            body: const LoadingWidget()));
+        error: _buildErrorContent,
+        loading: _buildLoadingContent);
+  }
+
+  Widget _buildLoadingContent() {
+    return Scaffold(
+        appBar: AppBar(title: const Text("TaskView")),
+        body: const LoadingWidget());
+  }
+
+  Widget _buildErrorContent(Object? o, StackTrace? st) {
+    return Scaffold(
+        appBar: AppBar(title: const Text("TaskView")),
+        body: ErrorWidget(o.toString()));
   }
 
   Widget _buildTaskDetails(Task? task, WidgetRef ref) {
@@ -37,51 +44,95 @@ class TaskView extends ConsumerWidget {
                 heroTag: null,
                 child: const Icon(Icons.edit),
                 onPressed: () async {
-                  await viewModel.goToTaskEditView(task);
-                  ref.refresh(taskListProvider);
+                  await viewModel.goToTaskEditView(ref);
                 }),
-            body: ListView(padding: const EdgeInsets.all(10), children: [
-              Text(
-                  "Task created on ${DateFormat("dd.MM.yyyy HH:mm").format(task.created)}"),
-              Container(height: 10),
-              Text(
-                  "Task active since ${DateFormat("dd.MM.yyyy HH:mm").format(task.configuration.initialDate ?? DateTime.now())}"),
-              Container(height: 10),
-              const Text("Past reminders",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Container(height: 10),
-              ..._buildPastReminders(task),
-              const Text("Upcoming reminders",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              Container(height: 10),
-              ..._buildUpcomingReminders(task),
-              ElevatedButton(
-                  onPressed: () => viewModel.goBack(),
-                  child: const Text("Go back")),
-            ]));
+            body: ListView.separated(
+                padding: const EdgeInsets.all(10),
+                separatorBuilder: (context, index) => Container(height: 10),
+                itemCount: task.reminders.length,
+                itemBuilder: ((context, index) => _buildReminderWidget(
+                    task.reminders[task.reminders.length - index - 1], ref))));
   }
 
-  List<Widget> _buildPastReminders(Task task) {
-    var widgets = <Widget>[];
-    for (var reminder in task.reminders
-        .where((element) => element.state != TaskReminderActionState.none)) {
-      widgets.add(Text(
-          "Task on ${DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn)} was ${(reminder.state == TaskReminderActionState.skipped) ? "skipped" : "confirmed"}"));
-      widgets.add(Container(height: 10));
+  Widget _buildReminderWidget(TaskReminder reminder, WidgetRef ref) {
+    Color? color;
+    switch (reminder.state) {
+      case TaskReminderActionState.none:
+        color = Colors.grey.shade300;
+        return _buildUnmarkedReminder(reminder, color, ref);
+      case TaskReminderActionState.done:
+        color = Colors.green.shade200;
+        return _buildMarkedReminder(reminder, color, true);
+      case TaskReminderActionState.skipped:
+        color = Colors.red.shade200;
+        return _buildMarkedReminder(reminder, color, false);
+      default:
+        color = Colors.grey.shade300;
+        return _buildUnmarkedReminder(reminder, color, ref);
     }
-
-    return widgets;
   }
 
-  List<Widget> _buildUpcomingReminders(Task task) {
-    var widgets = <Widget>[];
-    for (var reminder in task.reminders
-        .where((element) => element.state == TaskReminderActionState.none)) {
-      widgets.add(Text(
-          "Task due on ${DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn)}"));
-      widgets.add(Container(height: 10));
-    }
+  Widget _buildMarkedReminder(
+      TaskReminder reminder, Color bgColor, bool isDone) {
+    return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.all(Radius.circular(10))),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text("Reminder #${reminder.id}"),
+                Text(
+                    DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn))
+              ])),
+          Icon(isDone ? Icons.thumb_up_off_alt : Icons.thumb_down_off_alt)
+        ]));
+  }
 
-    return widgets;
+  Widget _buildUnmarkedReminder(
+      TaskReminder reminder, Color bgColor, WidgetRef ref) {
+    return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: const BorderRadius.all(Radius.circular(10))),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text("Reminder #${reminder.id}"),
+          Text(DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn)),
+          Container(height: 30),
+          _buildMarkButtons(reminder, ref),
+        ]));
+  }
+
+  Widget _buildMarkButtons(TaskReminder reminder, WidgetRef ref) {
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ActionChip(
+              backgroundColor: Colors.green.shade300,
+              shadowColor: Colors.black,
+              elevation: 3,
+              avatar: const Icon(Icons.thumb_up_off_alt, color: Colors.white),
+              label: const Text("Yes, I did it!",
+                  style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                viewModel.setReminderAsDone(reminder.id, ref);
+              }),
+          ActionChip(
+              backgroundColor: Colors.red.shade300,
+              shadowColor: Colors.black,
+              elevation: 3,
+              avatar: const Icon(Icons.thumb_down_off_alt, color: Colors.white),
+              label: const Text("I Skipped it",
+                  style: TextStyle(color: Colors.white)),
+              onPressed: () {
+                viewModel.setReminderAsSkipped(reminder.id, ref);
+              }),
+        ]);
   }
 }

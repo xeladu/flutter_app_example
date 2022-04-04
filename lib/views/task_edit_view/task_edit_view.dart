@@ -1,5 +1,7 @@
 import 'package:app_example/views/task_edit_view/task_edit_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class TaskEditView extends StatefulWidget {
   final TaskEditViewModel viewModel;
@@ -13,22 +15,24 @@ class TaskEditView extends StatefulWidget {
 class _State extends State<TaskEditView> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _firstReminderController =
-      TextEditingController();
-  final TextEditingController _nextRemindersController =
-      TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
 
-  String? _firstReminderErrorText;
-  String? _nextReminderErrorText;
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = widget.viewModel.title;
+    _descriptionController.text = widget.viewModel.description;
+    _dateController.text =
+        DateFormat("yyyy-MM-dd HH:mm").format(widget.viewModel.firstExecution);
+  }
 
   @override
   Widget build(BuildContext context) {
-    _titleController.text = widget.viewModel.title;
-    _descriptionController.text = widget.viewModel.description;
-
+    final pageName = widget.viewModel.task == null
+        ? "Create new task"
+        : "Edit task ${widget.viewModel.title}";
     return Scaffold(
-        appBar:
-            AppBar(title: Text("Task Edit View - ${widget.viewModel.title}")),
+        appBar: AppBar(title: Text(pageName)),
         body: ListView(padding: const EdgeInsets.all(10), children: [
           TextField(
             controller: _titleController,
@@ -46,44 +50,42 @@ class _State extends State<TaskEditView> {
             },
           ),
           Container(height: 20),
-          const Text("Reminders",
+          const Text("First reminder on",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          Container(height: 10),
-          TextField(
-            controller: _firstReminderController,
-            decoration: InputDecoration(
-                errorText: _firstReminderErrorText,
-                hintText: "yyyy/MM/dd HH:mm",
-                label: const Text("First reminder on")),
-            onChanged: (value) {
-              var dt = DateTime.tryParse(value);
-              if (dt == null) {
-                _firstReminderErrorText = "Wrong format!";
-              } else {
-                _firstReminderErrorText = null;
-                widget.viewModel.firstReminder = dt;
-              }
-              _refreshUi();
-            },
-          ),
-          Container(height: 10),
-          TextField(
-            controller: _nextRemindersController,
-            decoration: InputDecoration(
-                errorText: _nextReminderErrorText,
-                hintText: "number in seconds (86400 = 1 day)",
-                label: const Text("Next reminders interval")),
-            onChanged: (value) {
-              var dur = int.tryParse(value);
-              if (dur == null) {
-                _nextReminderErrorText = "Enter interval in seconds!";
-              } else {
-                _nextReminderErrorText = null;
-                widget.viewModel.reminderInterval = Duration(seconds: dur);
-              }
-              _refreshUi();
-            },
-          ),
+          Row(children: [
+            Expanded(
+                child: Text(DateFormat("yyyy-MM-dd HH:mm")
+                    .format(widget.viewModel.firstExecution))),
+            IconButton(
+                onPressed: () async {
+                  var date = await showDatePicker(
+                      context: context,
+                      initialDate: widget.viewModel.firstExecution,
+                      firstDate:
+                          DateTime.now().subtract(const Duration(days: 1)),
+                      lastDate: DateTime.now().add(const Duration(days: 365)));
+
+                  if (date != null) {
+                    var time = await showTimePicker(
+                        context: context, initialTime: TimeOfDay.now());
+
+                    if (time != null) {
+                      widget.viewModel.firstExecution = tz.TZDateTime(
+                          tz.local,
+                          date.year,
+                          date.month,
+                          date.day,
+                          time.hour,
+                          time.minute);
+                      setState(() {});
+                    }
+                  }
+                },
+                icon: const Icon(Icons.calendar_today),
+                color: Colors.blue)
+          ]),
+          const Text("Reminders will be scheduled daily",
+              style: TextStyle(fontSize: 14)),
           Container(height: 20),
           const Text("Select days to be skipped",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
@@ -165,17 +167,6 @@ class _State extends State<TaskEditView> {
                 widget.viewModel.skipSundays = value;
                 _refreshUi();
               }),
-          CheckboxListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text("Task enabled?"),
-              subtitle: const Text("Click to enable or disable this task"),
-              value: widget.viewModel.enabled,
-              onChanged: (value) {
-                widget.viewModel.enabled =
-                    value != null && value ? true : false;
-                _refreshUi();
-              }),
-          Container(height: 20),
           Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
             ElevatedButton(
                 onPressed: () => Navigator.pop(context),

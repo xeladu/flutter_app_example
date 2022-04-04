@@ -3,8 +3,7 @@ import 'package:app_example/providers/task_list_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // returns a Task object with the given id
-final singleTaskProvider =
-    FutureProvider.family<Task?, String>((ref, id) async {
+final singleTaskProvider = FutureProvider.family<Task?, int>((ref, id) async {
   final tasks = ref.watch(taskListProvider);
 
   return (tasks.asData == null)

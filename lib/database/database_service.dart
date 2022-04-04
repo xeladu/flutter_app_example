@@ -15,7 +15,7 @@ class DatabaseService {
     return res;
   }
 
-  Future<Task> getTaskById(String id) async {
+  Future<Task> getTaskById(int id) async {
     return (await getAllTasks())
         .firstWhere((element) => element.id == id, orElse: () => Task.empty());
   }
@@ -35,5 +35,9 @@ class DatabaseService {
   Future replaceTask(Task oldTask, Task newTask) async {
     await removeTask(oldTask);
     await addTask(newTask);
+  }
+
+  Future updateTask(Task task) async {
+    await replaceTask(task, task);
   }
 }

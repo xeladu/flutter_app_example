@@ -1,4 +1,3 @@
-import 'package:app_example/database/models/task.dart';
 import 'package:app_example/views/error_view/error_view.dart';
 import 'package:app_example/views/home_view/home_view.dart';
 import 'package:app_example/views/home_view/home_view_model.dart';
@@ -19,11 +18,11 @@ class RouteGenerator {
       case routeHome:
         return _buildRoute(HomeView(HomeViewModel()));
       case routeTask:
-        return _buildRoute(
-            TaskView(TaskViewModel(settings.arguments as String)));
+        return _buildRoute(TaskView(TaskViewModel(settings.arguments as int)));
       case routeTaskEdit:
-        return _buildRoute(
-            TaskEditView(TaskEditViewModel(settings.arguments as Task?)));
+        return _buildRoute(TaskEditView(TaskEditViewModel(
+            (settings.arguments as Map<String, dynamic>)["task"],
+            newId: (settings.arguments as Map<String, dynamic>)["newTaskId"])));
       case routeError:
         return _buildRoute(const ErrorView());
       default:
