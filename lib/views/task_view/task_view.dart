@@ -1,7 +1,9 @@
 import 'package:app_example/database/models/task.dart';
 import 'package:app_example/database/models/task_reminder.dart';
 import 'package:app_example/providers/single_task_provider.dart';
+import 'package:app_example/style/text_styles.dart';
 import 'package:app_example/views/task_view/task_view_model.dart';
+import 'package:app_example/views/task_view/widgets/mark_button_widget.dart';
 import 'package:app_example/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,38 +76,75 @@ class TaskView extends ConsumerWidget {
 
   Widget _buildMarkedReminder(
       TaskReminder reminder, Color bgColor, bool isDone) {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: const BorderRadius.all(Radius.circular(10))),
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                Text("Reminder #${reminder.id}"),
-                Text(
-                    DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn))
-              ])),
-          Icon(isDone ? Icons.thumb_up_off_alt : Icons.thumb_down_off_alt)
-        ]));
+    return Card(
+        color: bgColor,
+        child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text("Reminder #${reminder.id}",
+                            style: TextStyles.heading),
+                        Text(
+                          DateFormat("dd.MM.yyyy HH:mm")
+                              .format(reminder.scheduledOn),
+                          style: TextStyles.subHeading,
+                        )
+                      ])),
+                  Icon(isDone
+                      ? Icons.thumb_up_off_alt
+                      : Icons.thumb_down_off_alt)
+                ])));
   }
 
   Widget _buildUnmarkedReminder(
       TaskReminder reminder, Color bgColor, WidgetRef ref) {
-    return Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
+    return Dismissible(
+        direction: DismissDirection.horizontal,
+        onDismissed: (direction) =>
+            _handleDismissed(direction, reminder.id, ref),
+        background:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.thumb_up_off_alt,
+                        size: 72, color: Colors.green.shade300),
+                    Text("Done!", style: TextStyles.reminderDone)
+                  ])),
+          Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.thumb_down_off_alt,
+                        size: 72, color: Colors.red.shade300),
+                    Text("Skipped!", style: TextStyles.reminderSkipped)
+                  ]))
+        ]),
+        key: Key(reminder.id.toString()),
+        child: Card(
             color: bgColor,
-            borderRadius: const BorderRadius.all(Radius.circular(10))),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text("Reminder #${reminder.id}"),
-          Text(DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn)),
-          Container(height: 30),
-          _buildMarkButtons(reminder, ref),
-        ]));
+            child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Reminder #${reminder.id}",
+                          style: TextStyles.heading),
+                      Text(
+                          DateFormat("dd.MM.yyyy HH:mm")
+                              .format(reminder.scheduledOn),
+                          style: TextStyles.subHeading),
+                      Container(height: 30),
+                      _buildMarkButtons(reminder, ref),
+                    ]))));
   }
 
   Widget _buildMarkButtons(TaskReminder reminder, WidgetRef ref) {
@@ -113,26 +152,38 @@ class TaskView extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ActionChip(
+          MarkButtonWidget(
               backgroundColor: Colors.green.shade300,
-              shadowColor: Colors.black,
-              elevation: 3,
-              avatar: const Icon(Icons.thumb_up_off_alt, color: Colors.white),
-              label: const Text("Yes, I did it!",
-                  style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                viewModel.setReminderAsDone(reminder.id, ref);
-              }),
-          ActionChip(
+              label: "Yes, I did it!",
+              onPressed: () => viewModel.setReminderAsDone(reminder.id, ref),
+              avatar: const Icon(Icons.thumb_up_off_alt, color: Colors.white)),
+          MarkButtonWidget(
               backgroundColor: Colors.red.shade300,
-              shadowColor: Colors.black,
-              elevation: 3,
-              avatar: const Icon(Icons.thumb_down_off_alt, color: Colors.white),
-              label: const Text("I Skipped it",
-                  style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                viewModel.setReminderAsSkipped(reminder.id, ref);
-              }),
+              label: "I Skipped it",
+              onPressed: () => viewModel.setReminderAsSkipped(reminder.id, ref),
+              avatar: const Icon(Icons.thumb_down_off_alt, color: Colors.white))
         ]);
+  }
+
+  void _handleDismissed(
+      DismissDirection direction, int reminderId, WidgetRef ref) {
+    switch (direction) {
+      case DismissDirection.vertical:
+        break;
+      case DismissDirection.horizontal:
+        break;
+      case DismissDirection.endToStart:
+        viewModel.setReminderAsSkipped(reminderId, ref);
+        break;
+      case DismissDirection.startToEnd:
+        viewModel.setReminderAsDone(reminderId, ref);
+        break;
+      case DismissDirection.up:
+        break;
+      case DismissDirection.down:
+        break;
+      case DismissDirection.none:
+        break;
+    }
   }
 }
