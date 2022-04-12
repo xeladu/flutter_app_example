@@ -1,13 +1,18 @@
 import 'package:app_example/database/models/task.dart';
 import 'package:app_example/database/models/task_reminder.dart';
 import 'package:app_example/providers/single_task_provider.dart';
+import 'package:app_example/providers/task_list_provider.dart';
+import 'package:app_example/style/app_colors.dart';
 import 'package:app_example/style/text_styles.dart';
 import 'package:app_example/views/task_view/task_view_model.dart';
 import 'package:app_example/views/task_view/widgets/mark_button_widget.dart';
+import 'package:app_example/views/task_view/widgets/task_summary_widget.dart';
+import 'package:app_example/widgets/app_bar_button.dart';
 import 'package:app_example/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class TaskView extends ConsumerWidget {
   final TaskViewModel viewModel;
@@ -18,42 +23,45 @@ class TaskView extends ConsumerWidget {
     final provider = ref.watch(singleTaskProvider(viewModel.taskId));
 
     return provider.when(
-        data: (data) => _buildTaskDetails(data, ref),
+        data: (task) => _buildTaskDetails(task, ref),
         error: _buildErrorContent,
         loading: _buildLoadingContent);
   }
 
   Widget _buildLoadingContent() {
-    return Scaffold(
-        appBar: AppBar(title: const Text("TaskView")),
-        body: const LoadingWidget());
+    return const Scaffold(body: LoadingWidget());
   }
 
   Widget _buildErrorContent(Object? o, StackTrace? st) {
-    return Scaffold(
-        appBar: AppBar(title: const Text("TaskView")),
-        body: ErrorWidget(o.toString()));
+    return Scaffold(body: ErrorWidget(o.toString()));
   }
 
   Widget _buildTaskDetails(Task? task, WidgetRef ref) {
     return task == null
-        ? Scaffold(
-            appBar: AppBar(title: const Text("Task View")),
-            body: ErrorWidget("Error"))
+        ? _buildLoadingContent()
         : Scaffold(
-            appBar: AppBar(title: Text("Task View - ${task.title}")),
-            floatingActionButton: FloatingActionButton(
-                heroTag: null,
-                child: const Icon(Icons.edit),
-                onPressed: () async {
-                  await viewModel.goToTaskEditView(ref);
-                }),
-            body: ListView.separated(
-                padding: const EdgeInsets.all(10),
-                separatorBuilder: (context, index) => Container(height: 10),
-                itemCount: task.reminders.length,
-                itemBuilder: ((context, index) => _buildReminderWidget(
-                    task.reminders[task.reminders.length - index - 1], ref))));
+            bottomNavigationBar: BottomAppBar(
+                color: AppColors.taskBackground,
+                child: AppBarButton(
+                    icon: Icons.edit_rounded,
+                    onPressed: () async {
+                      await viewModel.goToTaskEditView(task);
+                      ref.refresh(taskListProvider);
+                    })),
+            body: Column(children: [
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
+                  child: TaskSummaryWidget(task: task)),
+              Expanded(
+                  child: ListView.separated(
+                      padding: const EdgeInsets.all(10),
+                      separatorBuilder: (context, index) =>
+                          Container(height: 10),
+                      itemCount: task.reminders.length,
+                      itemBuilder: ((context, index) => _buildReminderWidget(
+                          task.reminders[task.reminders.length - index - 1],
+                          ref))))
+            ]));
   }
 
   Widget _buildReminderWidget(TaskReminder reminder, WidgetRef ref) {
@@ -115,7 +123,7 @@ class TaskView extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.thumb_up_off_alt,
-                        size: 72, color: Colors.green.shade300),
+                        size: 72, color: AppColors.positive),
                     Text("Done!", style: TextStyles.reminderDone)
                   ])),
           Padding(
@@ -124,7 +132,7 @@ class TaskView extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.thumb_down_off_alt,
-                        size: 72, color: Colors.red.shade300),
+                        size: 72, color: AppColors.negative),
                     Text("Skipped!", style: TextStyles.reminderSkipped)
                   ]))
         ]),
@@ -139,8 +147,7 @@ class TaskView extends ConsumerWidget {
                       Text("Reminder #${reminder.id}",
                           style: TextStyles.heading),
                       Text(
-                          DateFormat("dd.MM.yyyy HH:mm")
-                              .format(reminder.scheduledOn),
+                          "${DateFormat("dd.MM.yyyy HH:mm").format(reminder.scheduledOn)} (${timeago.format(reminder.scheduledOn, allowFromNow: true)})",
                           style: TextStyles.subHeading),
                       Container(height: 30),
                       _buildMarkButtons(reminder, ref),

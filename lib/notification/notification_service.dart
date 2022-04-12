@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_example/database/models/task.dart';
+import 'package:app_example/database/models/task_reminder.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -48,8 +49,9 @@ class NotificationService {
 
     var details = _createNotificationDetails(task);
 
-    var reminders =
-        task.reminders.where((r) => r.scheduledOn.isAfter(DateTime.now()));
+    var reminders = task.reminders.where((r) =>
+        r.scheduledOn.isAfter(DateTime.now()) &&
+        r.state == TaskReminderActionState.none);
 
     if (reminders.isEmpty) return null;
 

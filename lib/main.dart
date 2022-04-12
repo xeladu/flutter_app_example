@@ -2,6 +2,7 @@ import 'package:app_example/dependency_setup.dart';
 import 'package:app_example/navigation/navigation_service.dart';
 import 'package:app_example/navigation/route_generator.dart';
 import 'package:app_example/notification/notification_service.dart';
+import 'package:app_example/style/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
@@ -26,7 +27,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         navigatorKey: Get.find<NavigationService>()
             .navigatorKey, // <-- our navigation key
-        theme: ThemeData(primarySwatch: Colors.blue),
+        theme: ThemeData(
+            primarySwatch: Colors.blue,
+            dialogBackgroundColor: AppColors.dialogBackground,
+            scaffoldBackgroundColor: AppColors.appBackground),
         onGenerateRoute: (settings) =>
             RouteGenerator().generateRoute(settings));
   }

@@ -10,6 +10,11 @@ class ReminderService {
     var dt = DateTime.now();
     var interval = task.configuration.recurringInterval!;
 
+    // remove all reminders that haven't been marked and that are scheduled in the future
+    task.reminders.removeWhere((element) =>
+        element.scheduledOn.isAfter(DateTime.now()) &&
+        element.state == TaskReminderActionState.none);
+
     // check the latest scheduled time
     var latestScheduledReminder = task.reminders.isNotEmpty
         ? task.reminders.last.scheduledOn

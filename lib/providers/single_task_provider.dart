@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // returns a Task object with the given id
 final singleTaskProvider = FutureProvider.family<Task?, int>((ref, id) async {
-  final tasks = ref.watch(taskListProvider);
+  final tasks = await ref.watch(taskListProvider.future);
 
-  return (tasks.asData == null)
-      ? null
-      : tasks.asData!.value.firstWhere((element) => element.id == id);
+  return tasks.firstWhere((element) => element.id == id);
 });

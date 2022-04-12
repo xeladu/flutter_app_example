@@ -5,7 +5,11 @@ import 'package:app_example/notification/notification_service.dart';
 import 'package:app_example/providers/reminder_update_provider.dart';
 import 'package:app_example/providers/reminder_update_state_provider.dart';
 import 'package:app_example/providers/task_list_provider.dart';
+import 'package:app_example/style/app_colors.dart';
+import 'package:app_example/style/text_styles.dart';
 import 'package:app_example/views/home_view/home_view_model.dart';
+import 'package:app_example/views/home_view/widgets/task_widget.dart';
+import 'package:app_example/widgets/app_bar_button.dart';
 import 'package:app_example/widgets/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,54 +47,71 @@ class _State extends ConsumerState<HomeView> {
   }
 
   Widget _buildLoadingContent() {
-    return Scaffold(
-        appBar: AppBar(title: const Text("HomeView")),
-        body: const LoadingWidget());
+    return const Scaffold(body: LoadingWidget());
   }
 
   Widget _buildErrorContent(Object? o, StackTrace? st) {
-    return Scaffold(
-        appBar: AppBar(title: const Text("HomeView")),
-        body: ErrorWidget(o.toString()));
+    return Scaffold(body: ErrorWidget(o.toString()));
   }
 
   Widget _buildDataContent(List<Task> data, WidgetRef ref) {
     return Scaffold(
-        appBar: AppBar(title: const Text("HomeView")),
-        floatingActionButton: FloatingActionButton(
-            heroTag: null,
-            onPressed: () async {
-              await widget.viewModel.addNewTask(ref);
-              ref.refresh(taskListProvider);
-            },
-            child: const Icon(Icons.add)),
+        bottomNavigationBar: BottomAppBar(
+            color: AppColors.taskBackground,
+            child: AppBarButton(
+                icon: Icons.add,
+                onPressed: () async {
+                  await widget.viewModel.addNewTask(ref);
+                  ref.refresh(taskListProvider);
+                })),
         body: data.isEmpty
             ? const Center(
                 child: Text(
                     "No data found!\r\nCreate your first task right now!",
                     textAlign: TextAlign.center))
             : Stack(children: [
-                ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    itemCount: data.length,
-                    itemBuilder: (context, index) {
-                      final item = data[index];
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 40, 10, 10),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("You have ${data.length} tasks",
+                              style: TextStyles.heading),
+                          Container(height: 10),
+                          Expanded(
+                              child: GridView.builder(
+                                  padding: EdgeInsets.zero,
+                                  itemCount: data.length,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 10.0,
+                                          mainAxisSpacing: 10.0),
+                                  itemBuilder: (context, index) {
+                                    final item = data[index];
 
-                      return Card(
-                          child: ListTile(
-                        onLongPress: () async {
-                          await widget.viewModel.deleteTask(item);
-                          ref.refresh(taskListProvider);
-                        },
-                        onTap: () async {
-                          await widget.viewModel.goToTaskView(item.id);
-                        },
-                        title: Text(item.title),
-                        subtitle: Text(item.description),
-                        isThreeLine: true,
-                        leading: const Icon(Icons.notifications),
-                      ));
-                    }),
+                                    return TaskWidget(
+                                        task: item,
+                                        onLongPress: () async {
+                                          if (!await widget.viewModel
+                                              .isDeleteConfirmed(
+                                                  item, context)) {
+                                            return;
+                                          }
+
+                                          await widget.viewModel
+                                              .deleteTask(item);
+                                          ref.refresh(taskListProvider);
+                                        },
+                                        onTap: () async {
+                                          await widget.viewModel
+                                              .goToTaskView(item.id);
+                                          await widget.viewModel
+                                              .updateNotification(item);
+                                          ref.refresh(taskListProvider);
+                                        });
+                                  }))
+                        ])),
                 _buildUpdateIndicator()
               ]));
   }

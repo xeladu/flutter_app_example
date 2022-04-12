@@ -1,4 +1,5 @@
 import 'package:app_example/database/database_service.dart';
+import 'package:app_example/database/models/task.dart';
 import 'package:app_example/database/models/task_reminder.dart';
 import 'package:app_example/navigation/navigation_service.dart';
 import 'package:app_example/navigation/route_generator.dart';
@@ -18,17 +19,9 @@ class TaskViewModel {
     _setReminder(reminderId, true, ref);
   }
 
-  Future goToTaskEditView(WidgetRef ref) async {
-    final provider = ref.watch(singleTaskProvider(taskId));
-
-    final task = provider.asData!.value;
-
+  Future goToTaskEditView(Task task) async {
     await Get.find<NavigationService>().navigateTo(RouteGenerator.routeTaskEdit,
         arguments: {"task": task, "newTaskId": null});
-  }
-
-  void goBack() {
-    Get.find<NavigationService>().pop();
   }
 
   void _setReminder(int reminderId, bool skipped, WidgetRef ref) {
