@@ -6,7 +6,7 @@ The repository contains the code of a Flutter app documented in the linked blog 
 
 |Article|Status|
 |-|-|
-|[Part 5 - make UI great again!](https://xeladu.medium.com)|▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-5)|
+|[Part 5 - make UI great again!](https://levelup.gitconnected.com/flutter-app-from-scratch-part-5-make-ui-great-again-a489b969d86c)|▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-5)|
 |[Part 4 - implementing logic and styling the user interface](https://levelup.gitconnected.com/flutter-app-from-scratch-part-4-implementing-logic-and-styling-the-user-interface-c08d2304b399)|▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-4)|
 |[Part 3 - building the user interface and managing state](https://levelup.gitconnected.com/flutter-app-from-scratch-part-3-building-the-user-interface-and-managing-state-dd2bb7dffbec) |▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-3)|
 |[Part 2 - define models and set up database](https://levelup.gitconnected.com/flutter-app-from-scratch-part-2-define-models-and-set-up-database-78a67666527a) |▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-2)|
