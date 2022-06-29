@@ -1,6 +1,10 @@
 # Content
 
-The repository contains the code of a Flutter app documented in the linked blog posts. For detailed information see the specific posts. There is a tag associated with each post with the matching code base.
+The repository contains the code of a Flutter app documented in the linked blog posts **and as an ebook 📗**. For detailed information see the specific posts. There is a tag associated with each post with the matching code base.
+
+## Ebook
+
+Find the ebook on my [Gumroad page](https://xeladu.gumroad.com/). It's totally free, offers a better reading experience than the blog posts, and more detailled information. If you like it, please rate it.
 
 ## Related Blog posts
 
