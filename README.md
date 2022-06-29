@@ -5,6 +5,7 @@ The repository contains the code of a Flutter app documented in the linked blog 
 ## Ebook
 
 Find the ebook on my [Gumroad page](https://xeladu.gumroad.com/). It's totally free, offers a better reading experience than the blog posts, and more detailled information. If you like it, please rate it.
+Feel free to browse through all my stuff on [Gumroad](https://xeladu.gumroad.com/) 👍
 
 ## Related Blog posts
 
