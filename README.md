@@ -17,11 +17,8 @@ Feel free to browse through all my stuff on [Gumroad](https://xeladu.gumroad.com
 |[Part 2 - define models and set up database](https://levelup.gitconnected.com/flutter-app-from-scratch-part-2-define-models-and-set-up-database-78a67666527a) |▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-2)|
 |[Part 1 - features, app design, app skeleton](https://levelup.gitconnected.com/flutter-app-from-scratch-part-1-planned-features-app-design-app-skeleton-c87f2c21f47a) |▶ [Source code](https://github.com/xeladu/flutter_app_example/releases/tag/app-1)|
 
-## Support
+## About me
 
-If you like this post or my work in general, feel free to support me in any way ❤
-
-- You can [become a Medium member via my referral link](https://xeladu.medium.com/membership) for just $5 a month! 💖
-- You can [browse my Gumroad store](https://xeladu.gumroad.com) for ebooks and freebies 📙
-- You can [join my free monthly Medium Newsletter](https://bit.ly/xeladu-medium) 💌
-- You can [find all my published stuff here](https://xeladu.medium.com/%E2%84%B9-xeladus-info-point-find-quickly-what-you-need-bbe620e97d8c) 📑
+- Follow me on [Medium](https://xeladu.medium.com)
+- Visit my [QuickCoder blog](https://quickcoder.org)
+- Check out my [digital products](https://xeladu.gumroad.com)
